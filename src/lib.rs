@@ -8,6 +8,11 @@ pub mod samples {
         is_control: bool,
     }
 
+    pub struct PrimerPair {
+        forward: String,
+        reverse: String,
+    }
+
     type SampleTable = HashMap<(String, String), SampleData>;
 
     pub fn fake_samples_table(succeed: bool) -> Result<SampleTable, std::io::Error> {

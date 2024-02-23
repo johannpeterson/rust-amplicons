@@ -5,7 +5,7 @@ use myfq::samples::read_wide_table;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{self, prelude::*, BufReader, Read};
+use std::io::{self, prelude::*, BufReader};
 
 use myfq::primers::{read_primer_table, Direction, Primer};
 
@@ -27,7 +27,7 @@ fn main() {
     let mut primer_file = File::open(args.primers).expect("Unable to open primers file.");
     let primer_table = read_primer_table(&mut primer_file).expect("Invalid primers file.");
 
-    let mut samples_file = Box::new(BufReader::new(
+    let samples_file = Box::new(BufReader::new(
         File::open(args.samples).expect("Unable to open samples file."),
     )) as Box<dyn BufRead>;
     let samples_table = read_wide_table(samples_file).expect("Unable to read samples table.");
