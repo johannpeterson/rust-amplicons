@@ -14,7 +14,10 @@ fn read_sample_table_good() {
         File::open(samples_table_good).expect("Unable to open samples file."),
     )) as Box<dyn BufRead>;
     let samples_table = read_wide_table(samples_file).expect("Unable to open samples table.");
-    assert!(samples_table.contains_key(&("oVK790".to_string(), "oVK791".to_string())));
+    assert!(samples_table.contains_key(&PrimerPair {
+        forward: "oVK790".to_string(),
+        reverse: "oVK791".to_string()
+    }));
 }
 
 #[test]

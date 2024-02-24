@@ -8,25 +8,32 @@ pub mod samples {
         is_control: bool,
     }
 
+    #[derive(Eq, PartialEq, Hash)]
     pub struct PrimerPair {
-        forward: String,
-        reverse: String,
+        pub forward: String,
+        pub reverse: String,
     }
 
-    type SampleTable = HashMap<(String, String), SampleData>;
+    type SampleTable = HashMap<PrimerPair, SampleData>;
 
     pub fn fake_samples_table(succeed: bool) -> Result<SampleTable, std::io::Error> {
         if succeed == true {
             let mut samples: SampleTable = SampleTable::new();
             samples.insert(
-                ("oVK001".to_string(), "oVK010".to_string()),
+                PrimerPair {
+                    forward: "oVK001".to_string(),
+                    reverse: "oVK010".to_string(),
+                },
                 SampleData {
                     name: "sample 1".to_string(),
                     is_control: false,
                 },
             );
             samples.insert(
-                ("oVK002".to_string(), "oVK020".to_string()),
+                PrimerPair {
+                    forward: "oVK002".to_string(),
+                    reverse: "oVK020".to_string(),
+                },
                 SampleData {
                     name: "sample 2".to_string(),
                     is_control: false,
@@ -71,7 +78,10 @@ pub mod samples {
                 while let Some(sample) = elements.next() {
                     let rp = rev_primers[column].clone();
                     samples_table.insert(
-                        (fp.to_string(), rp.to_string()),
+                        PrimerPair {
+                            forward: fp.to_string(),
+                            reverse: rp.to_string(),
+                        },
                         SampleData {
                             name: sample.to_string(),
                             is_control: false,
