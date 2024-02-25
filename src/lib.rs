@@ -1,7 +1,10 @@
 pub mod samples {
-    use std::collections::HashMap;
-    use std::error::Error;
-    use std::io::{self, BufRead, Read};
+    use std::collections::{HashMap, HashSet};
+    // use std::error::Error;
+    use std::fmt::{self, Write};
+    use std::io::{self, BufRead};
+
+    use clap::builder::FalseyValueParser;
 
     pub struct SampleData {
         name: String,
@@ -15,6 +18,82 @@ pub mod samples {
     }
 
     type SampleTable = HashMap<PrimerPair, SampleData>;
+
+    pub struct SamplesTable {
+        sample_table: HashMap<PrimerPair, SampleData>,
+        forward_primers: HashSet<String>,
+        reverse_primers: HashSet<String>,
+    }
+
+    impl SamplesTable {
+        pub fn new() -> SamplesTable {
+            SamplesTable {
+                sample_table: HashMap::new(),
+                forward_primers: HashSet::new(),
+                reverse_primers: HashSet::new(),
+            }
+        }
+
+        pub fn insert(&mut self, primers: PrimerPair, sample: SampleData) -> &mut Self {
+            // let forward_primer = primers.forward.clone();
+            // let reverse_primer = primers.reverse.clone();
+            self.forward_primers.insert(primers.forward.clone());
+            self.reverse_primers.insert(primers.reverse.clone());
+            self.sample_table.insert(primers, sample);
+            self
+        }
+
+        pub fn insert_by_names(&mut self, forward: &str, reverse: &str, name: &str) -> &mut Self {
+            self.insert(
+                PrimerPair {
+                    forward: forward.to_string(),
+                    reverse: reverse.to_string(),
+                },
+                SampleData {
+                    name: name.to_string(),
+                    is_control: false,
+                },
+            )
+        }
+
+        pub fn get(&self, primers: &PrimerPair) -> Option<&SampleData> {
+            self.sample_table.get(primers)
+        }
+
+        // pub fn write_narrow_table<W: Write>(&self, out: &mut W) -> std::io::Result<()> {
+        //     out.write_all(b"test")?;
+        //     write!(out, "writing samples table: {}", 5)?;
+        //     for fwd in &self.forward_primers {
+        //         for rev in &self.reverse_primers {
+        //             if let Some(sample) = self.sample_table.get(&PrimerPair {
+        //                 forward: fwd.to_owned(),
+        //                 reverse: rev.to_owned(),
+        //             }) {
+        //                 write!(out, "{}\t{}\t{}\n", *fwd, *rev, sample.name)?;
+        //             }
+        //         }
+        //     }
+        //     out.flush()
+        // }
+    }
+
+    impl fmt::Display for SamplesTable {
+        fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
+            if dest.alternate() {
+                // todo!("Need to implement alternate format.");
+                for (primers, sample) in &self.sample_table {
+                    writeln!(
+                        dest,
+                        "{}\t{}\t{}",
+                        primers.forward, primers.reverse, sample.name
+                    )?;
+                }
+            } else {
+                write!(dest, "SamplesTable in standard format.")?
+            }
+            Ok(())
+        }
+    }
 
     pub fn fake_samples_table(succeed: bool) -> Result<SampleTable, std::io::Error> {
         if succeed == true {
@@ -41,7 +120,10 @@ pub mod samples {
             );
             Ok(samples)
         } else {
-            Err(std::io::Error::new(io::ErrorKind::InvalidData, "failed"))
+            Err(std::io::Error::new(
+                io::ErrorKind::InvalidData,
+                "fake_samples_table succeed=false",
+            ))
         }
     }
 
@@ -133,6 +215,69 @@ pub mod samples {
     //     //Ok(samples)
     //     fake_samples_table(true)
     // }
+
+    #[test]
+    fn create_samples_table() {
+        let mut t: SamplesTable = SamplesTable::new();
+        t.insert(
+            PrimerPair {
+                forward: "p001".to_string(),
+                reverse: "p010".to_string(),
+            },
+            SampleData {
+                name: "sample_1".to_string(),
+                is_control: false,
+            },
+        );
+    }
+
+    #[test]
+    fn add_sample_by_names() {
+        let mut t: SamplesTable = SamplesTable::new();
+        t.insert_by_names("p001", "p010", "sample_1");
+    }
+
+    #[test]
+    fn write_wide_table() {
+        let mut t: SamplesTable = SamplesTable::new();
+        t.insert(
+            PrimerPair {
+                forward: "p001".to_string(),
+                reverse: "p010".to_string(),
+            },
+            SampleData {
+                name: "sample_1".to_string(),
+                is_control: false,
+            },
+        );
+
+        let mut s: String = String::new();
+        write!(s, "{}", t);
+        s.find("p001").expect("fwd not found");
+        s.find("p010").expect("rev not found");
+        s.find("sample_1").expect("name not found");
+    }
+
+    #[test]
+    fn write_narrow_table() {
+        let mut t: SamplesTable = SamplesTable::new();
+        t.insert(
+            PrimerPair {
+                forward: "p001".to_string(),
+                reverse: "p010".to_string(),
+            },
+            SampleData {
+                name: "sample_1".to_string(),
+                is_control: false,
+            },
+        );
+
+        let mut s: String = String::new();
+        write!(s, "{:#}", t);
+        s.find("p001").expect("fwd not found");
+        s.find("p010").expect("rev not found");
+        s.find("sample_1").expect("name not found");
+    }
 }
 
 pub mod primers {
