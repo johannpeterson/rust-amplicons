@@ -4,7 +4,7 @@ pub mod samples {
     use std::fmt::{self, Write};
     use std::io::{self, BufRead};
 
-    use clap::builder::FalseyValueParser;
+    // use clap::builder::FalseyValueParser;
 
     pub struct SampleData {
         name: String,
@@ -60,6 +60,15 @@ pub mod samples {
             self.sample_table.get(primers)
         }
 
+        pub fn get_sample_name_by_names(&self, fwd: &str, rev: &str) -> Option<String> {
+            self.sample_table
+                .get(&PrimerPair {
+                    forward: fwd.to_string(),
+                    reverse: rev.to_string(),
+                })
+                .map_or(None, |s| Some(s.name.to_owned()))
+        }
+
         // pub fn write_narrow_table<W: Write>(&self, out: &mut W) -> std::io::Result<()> {
         //     out.write_all(b"test")?;
         //     write!(out, "writing samples table: {}", 5)?;
@@ -80,7 +89,6 @@ pub mod samples {
     impl fmt::Display for SamplesTable {
         fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
             if dest.alternate() {
-                // todo!("Need to implement alternate format.");
                 for (primers, sample) in &self.sample_table {
                     writeln!(
                         dest,
@@ -89,7 +97,22 @@ pub mod samples {
                     )?;
                 }
             } else {
-                write!(dest, "SamplesTable in standard format.")?
+                write!(dest, "SamplesTable in standard format.")?;
+                for rev in &self.reverse_primers {
+                    write!(dest, "\t{}", rev)?;
+                }
+                write!(dest, "\n")?;
+                for fwd in &self.forward_primers {
+                    write!(dest, "{fwd}")?;
+                    for rev in &self.reverse_primers {
+                        write!(
+                            dest,
+                            "\t{}",
+                            self.get_sample_name_by_names(fwd, rev)
+                                .unwrap_or("".to_string())
+                        )?;
+                    }
+                }
             }
             Ok(())
         }
