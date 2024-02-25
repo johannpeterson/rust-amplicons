@@ -2,7 +2,6 @@ use bio::io::fastq;
 use clap::Parser;
 use itertools::Itertools;
 use myfq::samples::read_wide_table;
-use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, prelude::*, BufReader};

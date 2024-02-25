@@ -1,0 +1,3 @@
+# To Do
+- Split lib.rs into files for SamplesTable & Primers...
+- Figure out the borrow/ownership issue with getting samples out of a SampleTable.  Do you need to construct a new PrimerPair with its own Strings?

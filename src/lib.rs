@@ -68,22 +68,6 @@ pub mod samples {
                 })
                 .map_or(None, |s| Some(s.name.to_owned()))
         }
-
-        // pub fn write_narrow_table<W: Write>(&self, out: &mut W) -> std::io::Result<()> {
-        //     out.write_all(b"test")?;
-        //     write!(out, "writing samples table: {}", 5)?;
-        //     for fwd in &self.forward_primers {
-        //         for rev in &self.reverse_primers {
-        //             if let Some(sample) = self.sample_table.get(&PrimerPair {
-        //                 forward: fwd.to_owned(),
-        //                 reverse: rev.to_owned(),
-        //             }) {
-        //                 write!(out, "{}\t{}\t{}\n", *fwd, *rev, sample.name)?;
-        //             }
-        //         }
-        //     }
-        //     out.flush()
-        // }
     }
 
     impl fmt::Display for SamplesTable {
@@ -200,44 +184,6 @@ pub mod samples {
 
         Ok(samples_table)
     }
-
-    // pub fn read_samples_table<R: Read>(rdr: &mut R) -> Result<SampleTable, std::io::Error> {
-    //     let mut samples: SampleTable = HashMap::new();
-    //     let mut contents = String::new();
-    //     rdr.read_to_string(&mut contents)?;
-    //     let mut lines = contents.lines();
-    //     let header = lines.next().ok_or(std::io::Error::new(
-    //         io::ErrorKind::InvalidData,
-    //         "Samples file must have at least one line.",
-    //     ))?;
-    //     header.starts_with([' ', '\t']);
-    //     let fwd_primers: Vec<&str> = header.split_ascii_whitespace().collect();
-    //     let rev_primers: Vec<String> = Vec::new();
-    //     while let Some(row) = lines.next() {
-    //         let mut row_items = row.split_ascii_whitespace();
-
-    //         let rev_primer = {
-    //             if let Some(rev_primer) = row_items.next() {
-    //                 // add sample names from this row here
-    //                 rev_primer
-    //             } else {
-    //                 continue; // skip this empty row
-    //             }
-    //         };
-
-    //         while let Some((i, sample_name)) = row_items.enumerate().next() {
-    //             samples.insert(
-    //                 (fwd_primers[i].to_string(), rev_primer.to_string()),
-    //                 SampleData {
-    //                     name: sample_name.to_string(),
-    //                     is_control: false,
-    //                 },
-    //             );
-    //         }
-    //     }
-    //     //Ok(samples)
-    //     fake_samples_table(true)
-    // }
 
     #[test]
     fn create_samples_table() {
