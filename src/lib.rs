@@ -1,10 +1,8 @@
 pub mod samples {
     use std::collections::{HashMap, HashSet};
     // use std::error::Error;
-    use std::fmt::{self, Write};
+    use std::fmt::{self};
     use std::io::{self, BufRead};
-
-    // use clap::builder::FalseyValueParser;
 
     pub struct SampleData {
         name: String,
@@ -17,8 +15,6 @@ pub mod samples {
         pub reverse: String,
     }
 
-    type SampleTable = HashMap<PrimerPair, SampleData>;
-
     pub struct SamplesTable {
         sample_table: HashMap<PrimerPair, SampleData>,
         forward_primers: HashSet<String>,
@@ -26,6 +22,13 @@ pub mod samples {
     }
 
     impl SamplesTable {
+        /// Generates a new, empty SamplesTable
+        ///
+        /// # Examples
+        /// ```
+        /// use myfq::samples::*;
+        /// let mut st: SamplesTable = SamplesTable::new();
+        /// ```
         pub fn new() -> SamplesTable {
             SamplesTable {
                 sample_table: HashMap::new(),
@@ -34,15 +37,24 @@ pub mod samples {
             }
         }
 
+        /// Insert a SampleData record into self, with the PrimerPair as index.
         pub fn insert(&mut self, primers: PrimerPair, sample: SampleData) -> &mut Self {
-            // let forward_primer = primers.forward.clone();
-            // let reverse_primer = primers.reverse.clone();
             self.forward_primers.insert(primers.forward.clone());
             self.reverse_primers.insert(primers.reverse.clone());
             self.sample_table.insert(primers, sample);
             self
         }
 
+        /// Insert a sample by name into self, using the names of the forward & reverse primers.
+        ///
+        /// Allows one to insert into SamplesTable without constructing a SampleData & PrimerPair.
+        ///
+        /// # Examples
+        /// ```
+        /// use myfq::samples::*;
+        /// let mut t = SamplesTable::new();
+        /// t.insert_by_names("oVK001", "oVK010", "sample_1");
+        /// ```
         pub fn insert_by_names(&mut self, forward: &str, reverse: &str, name: &str) -> &mut Self {
             self.insert(
                 PrimerPair {
@@ -67,6 +79,10 @@ pub mod samples {
                     reverse: rev.to_string(),
                 })
                 .map_or(None, |s| Some(s.name.to_owned()))
+        }
+
+        pub fn contains_sample(&self, primers: &PrimerPair) -> bool {
+            self.sample_table.contains_key(primers)
         }
     }
 
@@ -102,9 +118,9 @@ pub mod samples {
         }
     }
 
-    pub fn fake_samples_table(succeed: bool) -> Result<SampleTable, std::io::Error> {
+    pub fn fake_samples_table(succeed: bool) -> Result<SamplesTable, std::io::Error> {
         if succeed == true {
-            let mut samples: SampleTable = SampleTable::new();
+            let mut samples: SamplesTable = SamplesTable::new();
             samples.insert(
                 PrimerPair {
                     forward: "oVK001".to_string(),
@@ -134,11 +150,11 @@ pub mod samples {
         }
     }
 
-    pub fn read_wide_table(rdr: Box<dyn BufRead>) -> Result<SampleTable, std::io::Error> {
+    pub fn read_wide_table(rdr: Box<dyn BufRead>) -> Result<SamplesTable, std::io::Error> {
         // Forward primers are in the first column.  Reverse primers are in the first row.
         let mut fwd_primers: Vec<String> = Vec::new();
         let mut rev_primers: Vec<String> = Vec::new();
-        let mut samples_table: SampleTable = HashMap::new();
+        let mut samples_table: SamplesTable = SamplesTable::new();
         let mut lines = rdr
             .lines()
             .map(|l| l.unwrap())
@@ -365,7 +381,7 @@ pub mod primers {
 
         /// Check the validity of the Primer object after creation.
         ///
-        /// The label must not be empty & the sequence must be consist of valid DNA
+        /// The label must not be empty & the sequence must consist of valid DNA
         /// bases, as defined in [bio::alphabets::dna](https://docs.rs/bio/latest/bio/alphabets/dna/index.html).
         pub fn check(&self) -> Result<(), &str> {
             // primer must have a non-empty label
